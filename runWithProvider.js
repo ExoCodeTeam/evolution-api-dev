@@ -45,7 +45,10 @@ if (command.includes('rmdir') && existsSync('prisma\\migrations')) {
 }
 
 try {
-  execSync(command, { stdio: 'inherit' });
+  execSync(command, {
+    stdio: 'inherit',
+    env: process.env,
+  });
 } catch (error) {
   console.error(`Error executing command: ${command}`);
   process.exit(1);
