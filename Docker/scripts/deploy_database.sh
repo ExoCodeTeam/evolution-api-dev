@@ -10,8 +10,16 @@ if [[ "$DATABASE_PROVIDER" == "postgresql" || "$DATABASE_PROVIDER" == "mysql" ||
     export DATABASE_URL
     echo "Deploying migrations for $DATABASE_PROVIDER"
     echo "Database URL: $DATABASE_URL"
-    # rm -rf ./prisma/migrations
-    # cp -r ./prisma/$DATABASE_PROVIDER-migrations ./prisma/migrations
+    # Ensure DATABASE_URL and DATABASE_CONNECTION_URI are in .env so
+    # dotenv (in runWithProvider.js and prisma.config.ts) can read them.
+    # The container ships with .env.example as .env which lacks the real
+    # connection string; writing it here guarantees Prisma finds it.
+    if [ -n "$DATABASE_URL" ]; then
+      grep -q '^DATABASE_URL=' .env 2>/dev/null && sed -i "s|^DATABASE_URL=.*|DATABASE_URL=${DATABASE_URL}|" .env || echo "DATABASE_URL=${DATABASE_URL}" >> .env
+    fi
+    if [ -n "$DATABASE_CONNECTION_URI" ]; then
+      grep -q '^DATABASE_CONNECTION_URI=' .env 2>/dev/null && sed -i "s|^DATABASE_CONNECTION_URI=.*|DATABASE_CONNECTION_URI=${DATABASE_CONNECTION_URI}|" .env || echo "DATABASE_CONNECTION_URI=${DATABASE_CONNECTION_URI}" >> .env
+    fi
     npm run db:deploy
     if [ $? -ne 0 ]; then
         echo "Migration failed"
