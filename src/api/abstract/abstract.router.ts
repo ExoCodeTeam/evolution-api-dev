@@ -51,7 +51,11 @@ export abstract class RouterBroker {
     }
 
     if (request.originalUrl.includes('/instance/create')) {
-      Object.assign(instance, sanitizeUntrustedInput(body));
+      const { instanceName, ...safeBody } = body || {};
+      Object.assign(instance, safeBody);
+      if (instanceName) {
+        instance.instanceName = instanceName;
+      }
     }
 
     Object.assign(ref, body);
